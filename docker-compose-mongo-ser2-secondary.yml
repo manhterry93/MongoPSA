@@ -1,0 +1,39 @@
+version: "3"
+
+services:
+  ## Shards
+  shard01b:
+    image: mongo:4.0.4
+    hostname: shard01b
+    command: mongod --storageEngine wiredTiger --port 27019 --shardsvr --replSet shard01 --noprealloc --smallfiles --oplogSize 50 --dbpath /data/db/shard01b --bind_ip_all
+    volumes:
+        - ./scripts:/scripts
+        - mongodb-shard01b:/data/db/shard01b
+    ports:
+        - "27019:27019"
+    networks:
+        - thereader-mongo-net
+    extra_hosts:
+      - "shard01a:192.168.1.51"
+      - "arbiter:192.168.1.200"
+
+  arbiter:
+    image: mongo:4.0.4
+    hostname: arbiter
+    command: mongod --storageEngine wiredTiger --port 27020 --shardsvr --replSet shard01 --noprealloc --smallfiles --oplogSize 50 --dbpath /data/db/arbiter --bind_ip_all
+    volumes:
+      - ./scripts:/scripts
+      - mongodb-arbiter:/data/db/arbiter
+    ports:
+      - "27020:27020"
+    networks:
+      - thereader-mongo-net
+    extra_hosts:
+      - "shard01a:192.168.1.51"
+      - "shard01b:192.168.1.200"
+
+volumes:
+  mongodb-shard01b:
+  mongodb-arbiter:
+networks:
+  thereader-mongo-net:
